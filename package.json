@@ -1,0 +1,13 @@
+{
+  "name": "R4RBot",
+  "version": "1.0.0",
+  "dependencies": {
+    "autolinker": "^3.14.1",
+    "dotenv": "^8.2.0",
+    "snoowrap": "^1.21.0"
+  },
+  "devDependencies": {
+    "nodemailer": "^6.4.6",
+    "snoostorm": "^1.3.0"
+  }
+}
