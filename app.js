@@ -1,25 +1,49 @@
 // Reddit wrappers, Url recognition, filestreams, mailing, and Env var parsing.
+require('dotenv').config();
 const Snoowrap = require('snoowrap');
 const {SubmissionStream} = require('snoostorm');
-const Autolinker = require('autolinker');
+const urlFinder = require('autolinker');
 const nodemailer = require('nodemailer');
-let fs = require('fs');
-require('dotenv').config();
+const {google} = require('googleapis');
+const Oauth2 = google.auth.OAuth2;
+const fs = require('fs');
 let currentCurrentBotTime = -1;
 
-const transporter = nodemailer.createTransport(
+const OAuth2Client = new Oauth2
+(
+    process.env.AUTH_ID,
+    process.env.AUTH_SECRET,
+    "https://developers.google.com/oauthplayground"
+);
+
+OAuth2Client.setCredentials
+({
+    refresh_token: process.env.REFRESH_TOKEN
+});
+
+const transporter = nodemailer.createTransport
+({
+    service: "gmail",
+    auth:
     {
-        service: 'gmail',
-        auth: {user: process.env.GMAIL_EMAIL, pass: process.env.GMAIL_PASS}
-    });
+        type: "OAuth2",
+        user: process.env.EMAIL,
+        clientId: process.env.AUTH_ID,
+        clientSecret: process.env.AUTH_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        accessToken: OAuth2Client.getAccessToken(),
+        tls: {rejectUnauthorized: false}
+    }
+});
 
 const mailOptions =
     {
         text: '',
-        from: process.env.GMAIL_EMAIL,
-        to: process.env.GMAIL_EMAIL,
-        subject: 'Target',
-        attachments: {filename: 'data.txt', path: 'data.txt'}
+        from: process.env.EMAIL,
+        to: process.env.EMAIL,
+        subject: 'Target Success'
+        // Uncomment the line below to get posts written as logs as an attachment...
+        // attachments: {filename: 'data.txt', path: 'data.txt'}
     };
 
 // Create a new client and authenticate it.
@@ -49,7 +73,7 @@ stream.on('item', function(post)
         currentCurrentBotTime)
     {
         let postUrl = post.url;
-        let postMediaRaw = Autolinker.parse(Autolinker.link(post.selftext).replace
+        let postMediaRaw = urlFinder.parse(urlFinder.link(post.selftext).replace
         (/[()<>_"']/g, ' '), {urls: true})[0];
         let postMediaLink = postMediaRaw === undefined ? 'NONE' : postMediaRaw.getMatchedText();
 
